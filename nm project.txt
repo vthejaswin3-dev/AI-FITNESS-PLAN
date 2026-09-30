@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitBuddy - AI Fitness Plan Generator</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #07111f, #102a43);
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 25px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #48e6a8;
+    }
+
+    .tagline {
+      color: #a9b7c7;
+      font-size: 14px;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 40px auto;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .hero h1 {
+      font-size: 42px;
+      margin-bottom: 12px;
+    }
+
+    .hero span {
+      color: #48e6a8;
+    }
+
+    .hero p {
+      color: #b7c4d3;
+      max-width: 700px;
+      margin: auto;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 25px;
+    }
+
+    .card h2 {
+      margin-bottom: 25px;
+      color: #48e6a8;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 14px;
+      color: #cbd6e2;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 13px 15px;
+      border: 1px solid #31465b;
+      border-radius: 10px;
+      background: #0b1b2d;
+      color: white;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #48e6a8;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .button-area {
+      margin-top: 25px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      padding: 14px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      transition: .2s;
+    }
+
+    .primary {
+      background: #48e6a8;
+      color: #062016;
+    }
+
+    .primary:hover {
+      background: #2fd494;
+      transform: translateY(-2px);
+    }
+
+    .secondary {
+      background: #253b50;
+      color: white;
+    }
+
+    .secondary:hover {
+      background: #314c64;
+    }
+
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 25px;
+    }
+
+    .spinner {
+      width: 38px;
+      height: 38px;
+      border: 4px solid #284258;
+      border-top-color: #48e6a8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: auto auto 12px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #result {
+      display: none;
+    }
+
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .plan-header h2 {
+      margin: 0;
+    }
+
+    .day {
+      background: #0b1b2d;
+      border: 1px solid #263c50;
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .day h3 {
+      color: #48e6a8;
+      margin-bottom: 12px;
+    }
+
+    .exercise {
+      padding: 13px 0;
+      border-bottom: 1px solid #203448;
+    }
+
+    .exercise:last-child {
+      border-bottom: none;
+    }
+
+    .exercise-name {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .exercise-details {
+      color: #aebdca;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .nutrition {
+      background: linear-gradient(135deg, #123b31, #0b2823);
+      border: 1px solid #245c4c;
+      border-radius: 14px;
+      padding: 22px;
+      margin-top: 20px;
+    }
+
+    .nutrition h3 {
+      color: #48e6a8;
+      margin-bottom: 12px;
+    }
+
+    .meal {
+      margin: 10px 0;
+      line-height: 1.5;
+      color: #d2ded8;
+    }
+
+    .tips {
+      margin-top: 20px;
+      padding: 20px;
+      background: #162536;
+      border-radius: 14px;
+    }
+
+    .tips li {
+      margin: 9px 0 9px 20px;
+      color: #c4d0dc;
+    }
+
+    .error {
+      background: #481f27;
+      border: 1px solid #8d3c4b;
+      color: #ffc7cf;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .api-note {
+      font-size: 12px;
+      color: #8092a4;
+      margin-top: 12px;
+    }
+
+    footer {
+      text-align: center;
+      color: #728599;
+      padding: 30px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 700px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+        grid-column: auto;
+      }
+
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">💪 FitBuddy</div>
+  <div class="tagline">AI Fitness Plan Generator</div>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <h1>Your Personal <span>AI Fitness Coach</span></h1>
+    <p>
+      Tell FitBuddy about your goals, fitness level, schedule and equipment.
+      Gemini will generate a personalized fitness plan for you.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>👤 Your Fitness Profile</h2>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input id="name" type="text" placeholder="Enter your name">
+      </div>
+
+      <div class="form-group">
+        <label for="age">Age</label>
+        <input id="age" type="number" min="13" max="100" placeholder="e.g. 25">
+      </div>
+
+      <div class="form-group">
+        <label for="gender">Gender</label>
+        <select id="gender">
+          <option value="">Prefer not to say</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="goal">Fitness Goal</label>
+        <select id="goal">
+          <option value="Weight loss">Weight loss</option>
+          <option value="Muscle gain">Muscle gain</option>
+          <option value="Strength">Strength</option>
+          <option value="Endurance">Endurance</option>
+          <option value="General fitness">General fitness</option>
+          <option value="Flexibility">Flexibility</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="level">Fitness Level</label>
+        <select id="level">
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="days">Workout Days / Week</label>
+        <select id="days">
+          <option value="2">2 days</option>
+          <option value="3" selected>3 days</option>
+          <option value="4">4 days</option>
+          <option value="5">5 days</option>
+          <option value="6">6 days</option>
+          <option value="7">7 days</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="duration">Workout Duration</label>
+        <select id="duration">
+          <option value="20 minutes">20 minutes</option>
+          <option value="30 minutes">30 minutes</option>
+          <option value="45 minutes" selected>45 minutes</option>
+          <option value="60 minutes">60 minutes</option>
+          <option value="90 minutes">90 minutes</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="equipment">Available Equipment</label>
+        <input
+          id="equipment"
+          type="text"
+          placeholder="e.g. Dumbbells, resistance bands"
+        >
+      </div>
+
+      <div class="form-group full">
+        <label for="restrictions">Injuries / Exercise Restrictions</label>
+        <textarea
+          id="restrictions"
+          placeholder="Mention anything the AI should take into account..."
+        ></textarea>
+      </div>
+
+      <div class="form-group full">
+        <label for="preferences">Exercise Preferences</label>
+        <textarea
+          id="preferences"
+          placeholder="e.g. I enjoy running and bodyweight exercises..."
+        ></textarea>
+      </div>
+
+    </div>
+
+    <div class="button-area">
+      <button class="primary" onclick="generatePlan()">
+        ✨ Generate My Plan
+      </button>
+
+      <button class="secondary" onclick="clearForm()">
+        Clear
+      </button>
+    </div>
+
+    <div class="api-note">
+      Demo note: do not expose a production Gemini API key in client-side
+      JavaScript. Use a backend/serverless function for production.
+    </div>
+
+    <div id="error" class="error"></div>
+  </section>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>FitBuddy is creating your personalized plan...</p>
+  </div>
+
+  <section id="result" class="card">
+
+    <div class="plan-header">
+      <h2>🏋️ Your FitBuddy Plan</h2>
+
+      <button class="secondary" onclick="generatePlan()">
+        🔄 Regenerate
+      </button>
+    </div>
+
+    <div id="planContent"></div>
+
+  </section>
+
+</main>
+
+<footer>
+  FitBuddy © 2026 — AI-generated fitness guidance.
+  Consult a qualified professional for individualized medical or exercise advice.
+</footer>
+
+<script>
+
+  /*
+   * ============================================================
+   * GEMINI CONFIGURATION
+   * ============================================================
+   *
+   * For a quick local demo, replace the value below with your
+   * Gemini API key.
+   *
+   * IMPORTANT:
+   * Never expose an API key like this in a production application.
+   * Use a backend endpoint instead.
+   */
+
+  const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY";
+
+  /*
+   * Gemini REST endpoint.
+   *
+   * Replace the model name with a currently available Gemini model
+   * in your Google AI environment if necessary.
+   */
+
+  const GEMINI_MODEL = "gemini-2.5-flash";
+
+  const GEMINI_URL =
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+
+  async function generatePlan() {
+
+    hideError();
+
+    const profile = getProfile();
+
+    if (!validateProfile(profile)) {
+      return;
+    }
+
+    if (
+      GEMINI_API_KEY === "YOUR_GEMINI_API_KEY" ||
+      !GEMINI_API_KEY.trim()
+    ) {
+      showError(
+        "Please add your Gemini API key to GEMINI_API_KEY in the JavaScript section."
+      );
+      return;
+    }
+
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("result").style.display = "none";
+
+    const prompt = createPrompt(profile);
+
+    try {
+
+      const response = await fetch(GEMINI_URL, {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
+            }
+          ],
+
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 5000
+          }
+
+        })
+
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error?.message ||
+          "Gemini API request failed."
+        );
+      }
+
+      const text =
+        data?.candidates?.[0]?.content?.parts
+          ?.map(part => part.text || "")
+          .join("") || "";
+
+      if (!text) {
+        throw new Error("Gemini returned an empty response.");
+      }
+
+      const cleaned = cleanJson(text);
+
+      let plan;
+
+      try {
+        plan = JSON.parse(cleaned);
+      } catch (jsonError) {
+        throw new Error(
+          "The AI returned an unexpected format. Please try generating the plan again."
+        );
+      }
+
+      renderPlan(plan, profile);
+
+      document.getElementById("result").style.display = "block";
+
+      saveProfile(profile);
+      savePlan(plan);
+
+    } catch (error) {
+
+      console.error(error);
+
+      showError(
+        error.message ||
+        "Something went wrong while generating your fitness plan."
+      );
+
+    } finally {
+
+      document.getElementById("loading").style.display = "none";
+    }
+  }
+
+
+  function getProfile() {
+
+    return {
+
+      name:
+        document.getElementById("name").value.trim(),
+
+      age:
+        document.getElementById("age").value.trim(),
+
+      gender:
+        document.getElementById("gender").value,
+
+      goal:
+        document.getElementById("goal").value,
+
+      level:
+        document.getElementById("level").value,
+
+      days:
+        document.getElementById("days").value,
+
+      duration:
+        document.getElementById("duration").value,
+
+      equipment:
+        document.getElementById("equipment").value.trim(),
+
+      restrictions:
+        document.getElementById("restrictions").value.trim(),
+
+      preferences:
+        document.getElementById("preferences").value.trim()
+
+    };
+
+  }
+
+
+  function validateProfile(profile) {
+
+    if (!profile.name) {
+      showError("Please enter your name.");
+      return false;
+    }
+
+    if (!profile.age) {
+      showError("Please enter your age.");
+      return false;
+    }
+
+    if (profile.age < 13 || profile.age > 100) {
+      showError("Please enter an age between 13 and 100.");
+      return false;
+    }
+
+    return true;
+  }
+
+
+  function createPrompt(profile) {
+
+    return `
+You are FitBuddy, an AI fitness planning assistant.
+
+Create a personalized ${profile.days}-day fitness plan for this user.
+
+USER PROFILE
+------------
+Name: ${profile.name}
+Age: ${profile.age}
+Gender: ${profile.gender || "Not specified"}
+Goal: ${profile.goal}
+Fitness level: ${profile.level}
+Workout days per week: ${profile.days}
+Workout duration: ${profile.duration}
+Equipment: ${profile.equipment || "No equipment"}
+Restrictions/injuries: ${profile.restrictions || "None stated"}
+Exercise preferences: ${profile.preferences || "None stated"}
+
+IMPORTANT SAFETY RULES
+----------------------
+- Do not diagnose medical conditions.
+- Do not claim that the plan is medically appropriate.
+- If the user reports an injury, medical issue, or restriction, avoid exercises that could aggravate it and recommend professional guidance where appropriate.
+- Do not prescribe medication or supplements.
+- Keep exercises appropriate for the stated fitness level.
+- Include warm-up and cool-down.
+- Provide alternatives for exercises when practical.
+- Nutrition information should be general educational guidance, not medical treatment.
+- Do not make extreme calorie restriction recommendations.
+
+OUTPUT
+------
+Return ONLY valid JSON.
+
+Use exactly this structure:
+
+{
+  "title": "string",
+  "summary": "string",
+  "weekly_goal": "string",
+  "days": [
+    {
+      "day": "string",
+      "focus": "string",
+      "warmup": "string",
+      "exercises": [
+        {
+          "name": "string",
+          "sets": "string",
+          "reps": "string",
+          "rest": "string",
+          "instructions": "string",
+          "alternative": "string"
+        }
+      ],
+      "cooldown": "string"
+    }
+  ],
+  "nutrition": {
+    "general_guidance": "string",
+    "breakfast": "string",
+    "lunch": "string",
+    "dinner": "string",
+    "snacks": "string",
+    "hydration": "string"
+  },
+  "tips": [
+    "string",
+    "string",
+    "string",
+    "string"
+  ]
+}
+
+Create practical, understandable and realistic recommendations.
+`;
+  }
+
+
+  function cleanJson(text) {
+
+    text = text.trim();
+
+    if (text.startsWith("```")) {
+
+      text = text
+        .replace(/^```json/i, "")
+        .replace(/^```/i, "")
+        .replace(/```$/i, "")
+        .trim();
+
+    }
+
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      text = text.substring(firstBrace, lastBrace + 1);
+    }
+
+    return text;
+  }
+
+
+  function renderPlan(plan, profile) {
+
+    const container =
+      document.getElementById("planContent");
+
+    let html = "";
+
+    html += `
+      <div class="day">
+        <h3>${escapeHtml(plan.title || "Personalized Fitness Plan")}</h3>
+
+        <p class="exercise-details">
+          ${escapeHtml(plan.summary || "")}
+        </p>
+
+        ${
+          plan.weekly_goal
+            ? `
+              <p class="exercise-details" style="margin-top:10px;">
+                <strong>Weekly Goal:</strong>
+                ${escapeHtml(plan.weekly_goal)}
+              </p>
+            `
+            : ""
+        }
+      </div>
+    `;
+
+
+    if (Array.isArray(plan.days)) {
+
+      plan.days.forEach(day => {
+
+        html += `
+          <div class="day">
+
+            <h3>
+              ${escapeHtml(day.day || "Workout")}
+            </h3>
+
+            <p class="exercise-details">
+              <strong>Focus:</strong>
+              ${escapeHtml(day.focus || "")}
+            </p>
+
+            <p class="exercise-details"
+               style="margin:12px 0;">
+              <strong>🔥 Warm-up:</strong>
+              ${escapeHtml(day.warmup || "")}
+            </p>
+        `;
+
+
+        if (Array.isArray(day.exercises)) {
+
+          day.exercises.forEach(exercise => {
+
+            html += `
+              <div class="exercise">
+
+                <div class="exercise-name">
+                  ${escapeHtml(exercise.name || "Exercise")}
+                </div>
+
+                <div class="exercise-details">
+
+                  <strong>Sets:</strong>
+                  ${escapeHtml(exercise.sets || "-")}
+
+                  &nbsp; | &nbsp;
+
+                  <strong>Reps:</strong>
+                  ${escapeHtml(exercise.reps || "-")}
+
+                  &nbsp; | &nbsp;
+
+                  <strong>Rest:</strong>
+                  ${escapeHtml(exercise.rest || "-")}
+
+                  <br>
+
+                  <strong>How:</strong>
+                  ${escapeHtml(exercise.instructions || "")}
+
+                  ${
+                    exercise.alternative
+                      ? `
+                        <br>
+                        <strong>Alternative:</strong>
+                        ${escapeHtml(exercise.alternative)}
+                      `
+                      : ""
+                  }
+
+                </div>
+
+              </div>
+            `;
+
+          });
+
+        }
+
+
+        html += `
+            <p class="exercise-details"
+               style="margin-top:12px;">
+              <strong>🧘 Cool-down:</strong>
+              ${escapeHtml(day.cooldown || "")}
+            </p>
+
+          </div>
+        `;
+
+      });
+
+    }
+
+
+    if (plan.nutrition) {
+
+      const nutrition = plan.nutrition;
+
+      html += `
+        <div class="nutrition">
+
+          <h3>🥗 Nutrition Guidance</h3>
+
+          <p class="meal">
+            <strong>General:</strong>
+            ${escapeHtml(nutrition.general_guidance || "")}
+          </p>
+
+          <p class="meal">
+            <strong>Breakfast:</strong>
+            ${escapeHtml(nutrition.breakfast || "")}
+          </p>
+
+          <p class="meal">
+            <strong>Lunch:</strong>
+            ${escapeHtml(nutrition.lunch || "")}
+          </p>
+
+          <p class="meal">
+            <strong>Dinner:</strong>
+            ${escapeHtml(nutrition.dinner || "")}
+          </p>
+
+          <p class="meal">
+            <strong>Snacks:</strong>
+            ${escapeHtml(nutrition.snacks || "")}
+          </p>
+
+          <p class="meal">
+            <strong>Hydration:</strong>
+            ${escapeHtml(nutrition.hydration || "")}
+          </p>
+
+        </div>
+      `;
+
+    }
+
+
+    if (Array.isArray(plan.tips)) {
+
+      html += `
+        <div class="tips">
+
+          <h3>💡 FitBuddy Tips</h3>
+
+          <ul>
+      `;
+
+      plan.tips.forEach(tip => {
+
+        html += `
+          <li>${escapeHtml(tip)}</li>
+        `;
+
+      });
+
+      html += `
+          </ul>
+
+        </div>
+      `;
+
+    }
+
+
+    container.innerHTML = html;
+
+    window.scrollTo({
+      top: document.getElementById("result").offsetTop - 20,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  function escapeHtml(value) {
+
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  function showError(message) {
+
+    const error =
+      document.getElementById("error");
+
+    error.textContent = message;
+    error.style.display = "block";
+
+    error.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+  }
+
+
+  function hideError() {
+
+    document.getElementById("error").style.display =
+      "none";
+
+  }
+
+
+  function clearForm() {
+
+    document.getElementById("name").value = "";
+    document.getElementById("age").value = "";
+    document.getElementById("gender").value = "";
+    document.getElementById("goal").value = "Weight loss";
+    document.getElementById("level").value = "Beginner";
+    document.getElementById("days").value = "3";
+    document.getElementById("duration").value = "45 minutes";
+    document.getElementById("equipment").value = "";
+    document.getElementById("restrictions").value = "";
+    document.getElementById("preferences").value = "";
+
+    document.getElementById("result").style.display = "none";
+
+    hideError();
+
+  }
+
+
+  function saveProfile(profile) {
+
+    try {
+      localStorage.setItem(
+        "fitbuddy_profile",
+        JSON.stringify(profile)
+      );
+    } catch (e) {
+      console.warn("Could not save profile.");
+    }
+
+  }
+
+
+  function savePlan(plan) {
+
+    try {
+      localStorage.setItem(
+        "fitbuddy_plan",
+        JSON.stringify(plan)
+      );
+    } catch (e) {
+      console.warn("Could not save plan.");
+    }
+
+  }
+
+
+  function loadSavedData() {
+
+    try {
+
+      const savedProfile =
+        localStorage.getItem("fitbuddy_profile");
+
+      if (savedProfile) {
+
+        const profile =
+          JSON.parse(savedProfile);
+
+        document.getElementById("name").value =
+          profile.name || "";
+
+        document.getElementById("age").value =
+          profile.age || "";
+
+        document.getElementById("gender").value =
+          profile.gender || "";
+
+        document.getElementById("goal").value =
+          profile.goal || "Weight loss";
+
+        document.getElementById("level").value =
+          profile.level || "Beginner";
+
+        document.getElementById("days").value =
+          profile.days || "3";
+
+        document.getElementById("duration").value =
+          profile.duration || "45 minutes";
+
+        document.getElementById("equipment").value =
+          profile.equipment || "";
+
+        document.getElementById("restrictions").value =
+          profile.restrictions || "";
+
+        document.getElementById("preferences").value =
+          profile.preferences || "";
+
+      }
+
+
+      const savedPlan =
+        localStorage.getItem("fitbuddy_plan");
+
+      if (savedPlan) {
+
+        const plan =
+          JSON.parse(savedPlan);
+
+        renderPlan(
+          plan,
+          JSON.parse(savedProfile || "{}")
+        );
+
+        document.getElementById("result").style.display =
+          "block";
+      }
+
+    } catch (e) {
+
+      console.warn(
+        "Saved FitBuddy data could not be loaded."
+      );
+
+    }
+
+  }
+
+
+  window.addEventListener(
+    "DOMContentLoaded",
+    loadSavedData
+  );
+
+</script>
+
+</body>
+</html>
